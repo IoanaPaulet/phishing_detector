@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Phishing Detector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 320px;
+      padding: 15px;
+      margin: 0;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .header img {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+    
+    h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    
+    .safe {
+      background-color: #e6f7e6;
+      color: #2e7d32;
+    }
+    
+    .warning {
+      background-color: #fff3e0;
+      color: #ef6c00;
+    }
+    
+    .danger {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    
+    .status-icon {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    
+    .details {
+      margin-top: 15px;
+    }
+    
+    .details h2 {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    
+    .reasons {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .reasons ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .scan-btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    
+    .scan-btn:hover {
+      background-color: #3367d6;
+    }
+    
+    .footer {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #757575;
+      text-align: center;
+    }
+    
+    .settings {
+      font-size: 14px;
+      text-align: center;
+      margin-top: 15px;
+    }
+    
+    .settings a {
+      color: #4285f4;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="images/icon48.png" alt="Logo">
+    <h1>Phishing Detector Extension</h1>
+  </div>
+  
+  <div id="status-container" class="status safe">
+    <div class="status-icon">✓</div>
+    <div class="status-text">Încărcând...</div>
+  </div>
+  
+  <div id="details" class="details" style="display: none;">
+    <h2>Detalii analiză</h2>
+    <div class="reasons">
+      <ul id="reasons-list">
+      </ul>
+    </div>
+  </div>
+  
+  <button id="scan-btn" class="scan-btn">Scanează emailul curent</button>
+  
+  <div class="settings">
+    <a href="#" id="settings-link">Setări</a> | 
+    <a href="#" id="history-link">Istoric</a>
+  </div>
+  
+  <div class="footer">
+    Powered by AI · Prototip 1.0
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
