@@ -1,50 +1,26 @@
-﻿venv/
-
-# Python
-__pycache__/
-*.py[cod]
-*.class
-*.pyc
-.ipynb_checkpoints/
-
-# Node.js
+﻿.env
+.venv/
+venv/
 node_modules/
-npm-debug.log*
-
-# Environment & Secrets
-.env
-*.key
-*.pem
-certificate.py
-
-# IDE
-.vscode/settings.json
+*.pkl
+*.joblib
+RandomForest/*.joblib
+classifier/classifier/
+.vscode/
 .idea/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Build artifacts
-dist/
-build/
-*.crx
-
 # Logs
 *.log
 
-# Temporary
-*.tmp
-temp/
-
-# Machine Learning Models (too large for GitHub)
-RandomForest/*.joblib
-RandomForest/*.pkl
-*.joblib
-*.pkl
-
-# Large ML models (recreate locally)
-RandomForest/*.joblib
-RandomForest/*.pkl
-*.joblib
-*.pkl
+# SSL certificates
+*.pem
+*.key
+certificate.py
+dataset/
+*.csv
+__pycache__/
+*.pyc

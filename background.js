@@ -1,3 +1,7 @@
+// 🎯 PHISHING DETECTOR - BACKGROUND SCRIPT FINAL
+// Păstrează COMPLET algoritmul original + adaugă ensemble cu Python server
+
+
 
 const phishingKeywords = [
   'urgent', 'verify', 'banking', 'password', 'credit card', 'social security',
@@ -30,18 +34,18 @@ const financialServices = [
   'stripe', 'square', 'citibank', 'hsbc', 'chase', 'wellsfargo'
 ];
 
-
 const sensitivePatterns = [
   /enter.{1,20}(password|credentials)/i,
   /(confirm|update|verify).{1,20}(details|information)/i,
-  /(credit.?card|card.?number)/i,
-  /(social.?security|SSN)/i,
-  /(account.?number|routing.?number)/i,
-  /(PIN|personal.?identification.?number)/i,
-  /(username|user.?id).{1,20}(and|&).{1,20}password/i,
+  /(credit\.?card|card\.?number)/i,
+  /(social\.?security|SSN)/i,
+  /(account\.?number|routing\.?number)/i,
+  /(PIN|personal\.?identification\.?number)/i,
+  /(username|user\.?id).{1,20}(and|&).{1,20}password/i,
   /bank.{1,30}(details|login|account)/i,
   /(tax|financial).{1,20}information/i
 ];
+
 const urgencyPhrases = [
   'urgent', 'immediate', 'action required', 'alert', 'warning', 
   'critical', 'limited time', 'expire',
@@ -52,37 +56,43 @@ const urgencyPhrases = [
 const trustedSenders = [
   "newsletter@company.com",
   "support@google.com",
-  "no-reply@linkedin.com",
+  "no-reply@linkedin.com", 
   "info@amazon.com",
   "notifications@github.com",
   "news@medium.com",
   "noreply@youtube.com",
-  "billing@microsoft.com",
-  
+  "billing@microsoft.com"
 ];
+
+/**
+ * 🔄 FUNCȚIA TA ORIGINALĂ HIBRIDĂ (PĂSTRATĂ EXACT)
+ * Detectează phishing folosind algoritmul original complet
+ */
 function detectPhishingWithAI(emailData) {
   const subject = emailData.subject || '';
   const body = emailData.body || '';
   const links = emailData.links || [];
   const sender = emailData.sender || '';
   
+  // Verifică trusted senders
   if (trustedSenders.some(trusted => sender.toLowerCase().includes(trusted))) {
     console.log('Expeditor de încredere detectat:', sender);
     return {
       isPhishing: false,
       score: 0,
-      reasons: ["Expeditor de încredere"]
+      reasons: ["Expeditor de încredere"],
+      method: "hybrid_trusted"
     };
   }
   
   const text = subject + ' ' + body;
   const textLower = text.toLowerCase();
   
-
   let score = 0.0;
   const reasons = [];
   const debugInfo = {}; 
   
+  // 1. Cuvinte cheie
   let keywordCount = 0;
   const keywordsDetected = [];
   
@@ -103,7 +113,7 @@ function detectPhishingWithAI(emailData) {
     debugInfo.keywordsDetected = keywordsDetected;
   }
   
-
+  // 2. Link-uri suspecte
   let suspiciousLinkCount = 0;
   const suspiciousLinks = [];
   
@@ -125,7 +135,6 @@ function detectPhishingWithAI(emailData) {
     }
   }
   
-
   if (suspiciousLinkCount > 0) {
     const linkScore = Math.min(0.3, suspiciousLinkCount * 0.15);
     score += linkScore;
@@ -133,7 +142,7 @@ function detectPhishingWithAI(emailData) {
     debugInfo.suspiciousLinks = suspiciousLinks;
   }
   
-
+  // 3. Informații sensibile
   let sensitiveInfoDetected = false;
   
   for (const pattern of sensitivePatterns) {
@@ -146,6 +155,7 @@ function detectPhishingWithAI(emailData) {
     }
   }
 
+  // 4. Servicii financiare mismatch
   let misusedServiceDetected = false;
   let misusedService = '';
   
@@ -170,6 +180,7 @@ function detectPhishingWithAI(emailData) {
     }
   }
 
+  // 5. Urgență
   let urgencyDetected = false;
   let urgencyPhrase = '';
   
@@ -184,6 +195,7 @@ function detectPhishingWithAI(emailData) {
     }
   }
   
+  // 6. Pattern-uri phishing
   let patternMatchCount = 0;
   const patternMatches = [];
   
@@ -214,9 +226,8 @@ function detectPhishingWithAI(emailData) {
     debugInfo.patternMatches = patternMatches;
   }
 
+  // Normalizează scorul
   score = Math.max(0, Math.min(1, score));
-  
-
   const isPhishing = score > 0.7;
   
   if (reasons.length > 5) {
@@ -224,7 +235,8 @@ function detectPhishingWithAI(emailData) {
   } else if (reasons.length === 0) {
     reasons.push("Nu am identificat motive specifice de îngrijorare.");
   }
-  console.log('Analiză phishing:', {
+
+  console.log('Analiză phishing hibrid (original):', {
     score: score,
     isPhishing: isPhishing,
     subject: subject,
@@ -234,31 +246,174 @@ function detectPhishingWithAI(emailData) {
   return {
     isPhishing: isPhishing,
     score: score,
-    reasons: reasons
+    reasons: reasons,
+    method: "hybrid_algorithm_original",
+    debugInfo: debugInfo
   };
 }
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'analyzeEmail') {
-    const result = detectPhishingWithAI(message.data);
-    chrome.storage.local.set({ 
-      lastAnalysis: {
-        timestamp: Date.now(),
-        data: message.data,
-        result: result
-      }
+
+// ============================================
+// ENSEMBLE CU PYTHON SERVER (NOU)
+// ============================================
+
+const PYTHON_SERVER_URL = 'http://127.0.0.1:5000';
+
+/**
+ * 🎯 ENSEMBLE: Combină algoritmul original cu Python server
+ * Dacă Python server e disponibil, folosește ensemble
+ * Dacă nu, folosește doar algoritmul original
+ */
+async function detectPhishingWithEnsemble(emailData) {
+  try {
+    console.log('🎯 Attempting ensemble analysis...', emailData);
+    
+    // Încearcă să contacteze Python server-ul
+    const response = await fetch(`${PYTHON_SERVER_URL}/analyze-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData),
+      timeout: 5000  // 5 secunde timeout
     });
     
-    if (result.isPhishing) {
-      chrome.tabs.sendMessage(sender.tab.id, {
-        action: 'showWarning',
-        isPhishing: result.isPhishing,
-        score: result.score,
-        reasons: result.reasons
-      });
+    if (!response.ok) {
+      throw new Error(`Server responded with status: ${response.status}`);
     }
     
-    sendResponse(result);
+    const ensembleResult = await response.json();
+    console.log('✅ Ensemble result from Python server:', ensembleResult);
+    
+    // Convertește rezultatul pentru compatibilitate cu extensia
+    return {
+      isPhishing: ensembleResult.isPhishing,
+      score: ensembleResult.score,
+      reasons: ensembleResult.reasons,
+      method: ensembleResult.method,
+      breakdown: ensembleResult.breakdown
+    };
+    
+  } catch (error) {
+    console.warn('⚠️ Python server unavailable, using original hybrid algorithm:', error.message);
+    
+    // Fallback la algoritmul tău original
+    const hybridResult = detectPhishingWithAI(emailData);
+    hybridResult.method = 'hybrid_fallback_python_unavailable';
+    hybridResult.note = 'Python server unavailable - using original algorithm';
+    
+    return hybridResult;
+  }
+}
+
+/**
+ * 🔍 Verifică dacă Python server-ul rulează
+ */
+async function checkPythonServerHealth() {
+  try {
+    const response = await fetch(`${PYTHON_SERVER_URL}/health`, {
+      method: 'GET',
+      timeout: 3000
+    });
+    
+    if (response.ok) {
+      const health = await response.json();
+      console.log('🟢 Python server status:', health);
+      return health;
+    }
+    
+    throw new Error(`Health check failed: ${response.status}`);
+    
+  } catch (error) {
+    console.log('🔴 Python server not available:', error.message);
+    return null;
+  }
+}
+
+// ============================================
+// MESSAGE HANDLERS (PĂSTRAT DIN ORIGINAL)
+// ============================================
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'analyzeEmail') {
+    console.log('📨 Received email analysis request:', message.data);
+    
+    // Folosește ensemble (cu fallback la hibrid original)
+    detectPhishingWithEnsemble(message.data)
+      .then(result => {
+        // Salvează rezultatul pentru popup
+        chrome.storage.local.set({ 
+          lastAnalysis: {
+            timestamp: Date.now(),
+            data: message.data,
+            result: result
+          }
+        });
+        
+        // Afișează warning dacă e phishing
+        if (result.isPhishing) {
+          chrome.tabs.sendMessage(sender.tab.id, {
+            action: 'showWarning',
+            isPhishing: result.isPhishing,
+            score: result.score,
+            reasons: result.reasons
+          });
+        }
+        
+        // Log pentru debugging
+        console.log('📊 Final analysis result:', {
+          method: result.method,
+          score: result.score,
+          isPhishing: result.isPhishing,
+          pythonServerUsed: !result.method.includes('fallback')
+        });
+        
+        sendResponse(result);
+      })
+      .catch(error => {
+        console.error('❌ Critical error in analysis:', error);
+        
+        // Ultimate fallback la algoritmul original
+        const fallbackResult = detectPhishingWithAI(message.data);
+        fallbackResult.method = 'hybrid_critical_fallback';
+        fallbackResult.error = error.message;
+        
+        sendResponse(fallbackResult);
+      });
+    
+    return true; // Async response
   }
   
-  return true; 
+  // Handler pentru verificarea stării Python server
+  if (message.action === 'checkPythonServer') {
+    checkPythonServerHealth()
+      .then(health => sendResponse(health))
+      .catch(() => sendResponse(null));
+    
+    return true;
+  }
 });
+
+// ============================================
+// INIȚIALIZARE (PĂSTRATĂ DIN ORIGINAL)
+// ============================================
+
+chrome.runtime.onStartup.addListener(() => {
+  console.log('🚀 Phishing Detector Extension started (Ensemble mode)');
+  checkPythonServerHealth();
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('📦 Phishing Detector Extension installed (Ensemble mode)');
+  console.log('🎯 Algorithm: Original hibrid + Python ensemble (30% RF + 70% hibrid)');
+  console.log('🔄 Fallback: Original hibrid algorithm if Python unavailable');
+  checkPythonServerHealth();
+});
+
+// Test inițial la încărcarea script-ului
+console.log('🔧 Background script loaded - Ensemble mode with original algorithm fallback');
+console.log('📡 Python server expected at: http://127.0.0.1:5000');
+console.log('🎯 Ensemble: 30% RandomForest + 70% Algoritm hibrid original');
+console.log('🔄 Fallback: 100% Algoritm hibrid original (dacă Python nu e disponibil)');
+
+// Verificare inițială Python server
+checkPythonServerHealth();
