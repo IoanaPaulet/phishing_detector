@@ -16,10 +16,6 @@ from collections import Counter
 # Ascunde warning-urile sklearn
 warnings.filterwarnings('ignore', category=UserWarning)
 
-# ============================================
-# JSON SERIALIZATION HELPER
-# ============================================
-
 def make_json_serializable(obj):
     """Convertește obiecte numpy/pandas la tipuri Python JSON serializable"""
     if isinstance(obj, (np.bool_, bool)):
@@ -38,10 +34,6 @@ def make_json_serializable(obj):
         return make_json_serializable(obj.to_dict())
     else:
         return str(obj)
-
-# ============================================
-# CONSTANTE ÎMBUNĂTĂȚITE
-# ============================================
 
 # Cuvinte cheie phishing (pentru email features)
 SUSPICIOUS_KEYWORDS = [
@@ -172,17 +164,14 @@ def predict_with_randomforest(email_content, subject="", sender=""):
         - confidence: 0-1 (încrederea în predicție)
     """
     try:
-        # Încarcă modelul
         model = load_randomforest_model()
         if model is None:
             print("🔄 RandomForest unavailable - using fallback")
             return heuristic_rf_fallback(email_content, subject, sender)
         
-        # Extract features
         features = extract_email_features(email_content, subject, sender)
         features_df = features.to_frame().T
         
-        # Încearcă predicția
         try:
             # Pentru modelul tău cu classes [0, 1]
             probabilities = model.predict_proba(features_df)[0]
@@ -328,25 +317,19 @@ def detect_phishing_hybrid(email_data):
             score += 0.25
             reasons.append("Solicită informații sensibile")
             break
-    
-    # 4. ÎMBUNĂTĂȚIRE: TONALITATE URGENTĂ ENHANCED (max 0.3 points)
     urgency_phrases = ['urgent', 'immediate', 'action required', 'expires']
     urgency_score = 0
     
-    # Urgență în subject (mai periculos)
     if any(phrase in subject.lower() for phrase in urgency_phrases):
         urgency_score += 0.2
         reasons.append("Tonalitate urgentă în subject")
-    
-    # Urgență în body
+
     if any(phrase in body.lower() for phrase in urgency_phrases):
         urgency_score += 0.1
         if "Tonalitate urgentă în subject" not in reasons:
             reasons.append("Tonalitate urgentă")
     
     score += min(0.3, urgency_score)
-    
-    # 5. ÎMBUNĂTĂȚIRE: COMBINAȚII PERICULOASE (max 0.4 points)
     dangerous_combinations = [
         ('urgent', 'click', 0.4, "Combinație URGENT + CLICK"),
         ('urgent', 'verify', 0.3, "Combinație URGENT + VERIFY"),
@@ -396,17 +379,12 @@ def detect_phishing_hybrid(email_data):
     
     score += min(0.2, subject_score)
     
-    # Normalizează scorul
     score = max(0.0, min(1.0, score))
     
     if not reasons:
         reasons.append("Nu am detectat indicatori de phishing")
     
     return float(score), reasons
-
-# ============================================
-# ENSEMBLE PREDICTION FIXED
-# ============================================
 
 def ensemble_predict_email(email_data, alfa=0.3):
     """
@@ -424,11 +402,9 @@ def ensemble_predict_email(email_data, alfa=0.3):
     print(f"🎯 Starting ensemble analysis (alfa={alfa})...")
     
     try:
-        # HIBRID ALGORITHM ÎMBUNĂTĂȚIT (70%)
         hibrid_score, hibrid_reasons = detect_phishing_hybrid(email_data)
         print(f"🔄 Hibrid score: {hibrid_score:.3f}")
-        
-        # RANDOMFOREST (30%) - interpretat corect pentru classes [0, 1]
+    
         rf_phishing_score, rf_confidence = predict_with_randomforest(
             email_data.get('body', ''),
             email_data.get('subject', ''),
@@ -503,9 +479,6 @@ def ensemble_predict_email(email_data, alfa=0.3):
             }
         }
 
-# ============================================
-# TESTING FUNCTIONS
-# ============================================
 
 def test_problematic_email():
     """Testează email-ul problematic din exemplul tău"""
@@ -524,7 +497,6 @@ def test_problematic_email():
     print(f"   Body: '{problematic_email['body']}'")
     print(f"   Sender: '{problematic_email['sender']}'")
     
-    # Test cu sistem fixed
     result = ensemble_predict_email(problematic_email)
     
     print(f"\n🎯 REZULTAT FIXED:")
@@ -543,7 +515,6 @@ def test_problematic_email():
     print(f"   🔄 Hibrid Enhanced: {result['breakdown']['hibrid_score']:.3f}")
     print(f"   ⚖️ Weights: {result['breakdown']['weights']}")
     
-    # Verifică dacă e detectat corect
     if result['isPhishing']:
         print(f"\n✅ SUCCESS! Email-ul evident suspect este acum detectat ca PHISHING!")
         print(f"🎯 Îmbunătățirile au funcționat!")
